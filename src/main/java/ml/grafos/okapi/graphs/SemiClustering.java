@@ -249,6 +249,7 @@ SemiClusterTreeSetWritable, DoubleWritable, SemiClusterTreeSetWritable> {
      */
     @Override
     public final void readFields(final DataInput input) throws IOException {
+      clear();
       int size = input.readInt();
       for (int i = 0; i < size; i++) {
         SemiCluster c = new SemiCluster();

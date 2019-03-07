@@ -221,7 +221,7 @@ public class AdamicAdar {
       for (LongIdDoubleValueFriendsList msg : messages) {
         DoubleWritable partialValue = msg.getVertexValue();
         for (LongWritable id : msg.getNeighborsList()) {
-        	if (id != vertex.getId()) {
+        	if (id.get() != vertex.getId().get()) {
         		if (vertex.getEdgeValue(id) != null) {
         			DoubleWritable currentEdgeValue = vertex.getEdgeValue(id);
         			// if the edge exists, add up the partial value to the current sum

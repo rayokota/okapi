@@ -3,4 +3,4 @@ target
 .classpath
 .idea
 .project
-graphlib.iml
+*.iml
