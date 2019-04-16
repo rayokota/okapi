@@ -18,14 +18,19 @@ package ml.grafos.okapi.cf.svd;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import junit.framework.Assert;
 import ml.grafos.okapi.cf.CfLongIdFloatTextInputFormat;
@@ -138,7 +143,7 @@ public class SvdppTest {
 
   @Test
   public void testEndtoEnd() throws Exception {
-    String[] graph = { 
+    String[] graph = {
         "1 1 1.0",
         "1 2 2.0",
         "2 1 3.0",
@@ -163,7 +168,43 @@ public class SvdppTest {
     for (String string : results) {
       res.add(string);
     }
+    System.out.println(res);
     Assert.assertEquals(4, res.size());
     
+  }
+
+  @Test
+  public void testFilmTrust() throws Exception {
+    ArrayList<String> result = new ArrayList<>();
+
+    try (BufferedReader br = new BufferedReader(new FileReader("/tmp/ratings_duped.txt"))) {
+      while (br.ready()) {
+        result.add(br.readLine());
+      }
+    }
+    String[] graph = result.toArray(new String[result.size()]);
+
+    GiraphConfiguration conf = new GiraphConfiguration();
+    conf.setComputationClass(Svdpp.InitUsersComputation.class);
+    conf.setMasterComputeClass(Svdpp.MasterCompute.class);
+    conf.setEdgeInputFormatClass(CfLongIdFloatTextInputFormat.class);
+    conf.setFloat(Svdpp.BIAS_LAMBDA, 0.005f);
+    conf.setFloat(Svdpp.BIAS_GAMMA, 0.01f);
+    conf.setFloat(Svdpp.FACTOR_LAMBDA, 0.005f);
+    conf.setFloat(Svdpp.FACTOR_GAMMA, 0.01f);
+    conf.setFloat(Svdpp.MIN_RATING, 0);
+    conf.setFloat(Svdpp.MAX_RATING, 5);
+    conf.setInt(Svdpp.VECTOR_SIZE, 2);
+    conf.setInt(Svdpp.ITERATIONS, 2);
+    //conf.setInt(Svdpp.ITERATIONS, 5);
+    conf.setVertexOutputFormatClass(IdWithValueTextOutputFormat.class);
+    Iterable<String> results = InternalVertexRunner.run(conf, null, graph);
+    Set<String> res = new TreeSet<String>();
+    for (String string : results) {
+      res.add(string);
+    }
+    System.out.println(res);
+    Assert.assertEquals(3579, res.size());
+
   }
 }
